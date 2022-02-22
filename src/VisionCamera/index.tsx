@@ -56,18 +56,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'green',
   },
+  disabledShutter: {
+    backgroundColor: 'gray',
+  },
 });
 
 const Shutter = ({onPress, disabled}) => (
   <TouchableOpacity
-    style={[styles.shutter, disabled && {backgroundColor: 'gray'}]}
+    style={[styles.shutter, disabled && styles.disabledShutter]}
     onPress={onPress}
     disabled={disabled}
   />
 );
 
 export function VisionCamera() {
-  // eslint-disable-next-line prettier/prettier
   const [permissionEnabled, setPermissionEnabled] = useState<
     boolean | undefined
   >(undefined);
