@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+
 import {
   StyleSheet,
   View,
@@ -7,11 +8,10 @@ import {
   ImageBackground,
 } from 'react-native';
 import {
-  Asset,
   launchImageLibrary,
   ImagePickerResponse,
+  Asset,
 } from 'react-native-image-picker';
-
 import FaceDetection, {
   FaceDetectorContourMode,
   FaceDetectorLandmarkMode,
@@ -56,8 +56,8 @@ function calculateFaceRectInsideImage(
   boundingBox: BoundingBoxType,
   imageSize: ImageSizeType,
 ): FaceRectType {
-  const wRatio = imageSize.originalHeight / imageSize.width;
-  const hRatio = imageSize.originalWidth / imageSize.height;
+  const wRatio = imageSize.originalWidth / imageSize.width;
+  const hRatio = imageSize.originalHeight / imageSize.height;
 
   const faceX = boundingBox[0] / wRatio;
   const faceY = boundingBox[1] / hRatio;
@@ -68,16 +68,17 @@ function calculateFaceRectInsideImage(
   return {
     x: faceX,
     y: faceY,
-    width: faceWidth,
-    height: faceHeight,
+    width: Math.ceil(faceWidth),
+    height: Math.ceil(faceHeight),
   };
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingBottom: 10,
     justifyContent: 'center',
   },
   box: {
@@ -93,7 +94,7 @@ export function App() {
   const [imageObject, setImageObject] = useState<Asset | undefined>();
   const [imageSize, setImageSize] = useState<ImageSizeType | undefined>();
   const [faceRects, setFaceRects] = useState<FaceRectType[] | undefined>();
-  const [isLoading, setIsLoading] = useState<boolean | undefined>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const processImage = async () => {
@@ -147,26 +148,26 @@ export function App() {
               height: imageSize.height,
             },
           ]}>
-          {faceRects?.map((faceRect: FaceRectType, index: number) => (
-            <View
-              key={String(index)}
-              style={[
-                styles.box,
-                {
-                  width: faceRect.width,
-                  height: faceRect.height,
-                  left: faceRect.x,
-                  top: faceRect.y,
-                },
-              ]}
-            />
-          ))}
+          {faceRects &&
+            faceRects.map((rect: FaceRectType, index: number) => (
+              <View
+                key={`${index}`}
+                style={[
+                  styles.box,
+                  {
+                    width: rect.width,
+                    height: rect.height,
+                    left: rect.x,
+                    top: rect.y,
+                  },
+                ]}
+              />
+            ))}
         </ImageBackground>
       )}
       <View style={styles.buttonContainer}>
         <Button
-          title="Pick an image from camera roll"
-          disabled={isLoading}
+          title="Choose Image"
           onPress={async () => {
             launchImageLibrary(
               {
@@ -174,15 +175,18 @@ export function App() {
               },
               (response: ImagePickerResponse) => {
                 if (response.didCancel) {
-                  return null;
-                } else {
-                  setFaceRects(undefined);
-                  setIsLoading(true);
-                  setImageObject(response.assets[0]);
+                  return;
                 }
+
+                setFaceRects(undefined);
+
+                setIsLoading(true);
+
+                response.assets && setImageObject(response.assets[0]);
               },
             );
           }}
+          disabled={isLoading}
         />
       </View>
     </View>
